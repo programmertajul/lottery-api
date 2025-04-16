@@ -1,7 +1,9 @@
 const express = require('express');
 const connectDB = require('./db');
+const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
 const User = require('./models/User');
+const authenticate = require('./middleware/authenticate');
 
 const app = express();
 
@@ -130,22 +132,37 @@ app.post('/login', async (req, res, next) => {
 
 
         delete user._doc.password;
+        console.log(user._doc);
+        console.log('i m taj');
 
-        return res.status(200).json({message: 'login successful', user});
+     
+        const token = jwt.sign(user._doc, 'tajul', {expiresIn: '50s'});
+        console.log(token);   
+
+        return res.status(200).json({message: 'login successful', token});
 
     } catch(e){
 
     }
 
 
+});
 
 
-
+app.get('/private', authenticate, async (req, res) => {
+    console.log('i am the user', req.user);
+    
+ 
+    return res.status(200).json({message: 'i am a private route'});
 
 
 });
 
 
+
+app.get('/public', (req, res) => {
+    return res.status(200).json({message: 'i am a public route'});
+});
 
 
 
