@@ -1,13 +1,18 @@
 const express = require('express');
 const connectDB = require('./db');
-const jwt = require('jsonwebtoken');
-const bcrypt = require('bcryptjs');
-const User = require('./models/User');
 const authenticate = require('./middleware/authenticate');
+const routes = require('./routes/index');
+
 
 const app = express();
 
 app.use(express.json());
+app.use(routes);
+
+
+
+
+
 
 const books = [
     {
@@ -54,99 +59,6 @@ const books = [
 
 
 
-app.post('/register', async (req, res, next) => {
-
-  const {name, email, password} = req.body;
-
-  if (!name || !email || !password){
-
-    return res.status(400).json({"message" : "invalid data"});
-
-
-  }
-
- try{
-
-    let user = await User.findOne({ email });
-
-    if (user){
-      return res.status(400).json({message: 'user already exist'});
-  
-  
-    }
-  
-    user = new User({name, email, password});
-  
-  
-  
-    const salt = await bcrypt.genSalt(10);
-    console.log(salt);
-    const hash = await bcrypt.hash(user.password, salt);
-    console.log(hash);
-    console.log('this is bcryptjs');
-    
-    user.password = hash;
-  
-  
-    await user.save();
-  
-    return res.status(201).json({message: 'user created sucessfully', user});
-
- } catch(e){
-
-
-    next(e);
-
- }
-
-
-
-});
-
-
-
-
-app.post('/login', async (req, res, next) => {
-
-
-    const {email, password} = req.body;
-
-    try{
-
-        const user = await User.findOne({ email });
-
-        if (!user){
-            return res.status(400).json({message: 'invalid credential'});
-
-        }
-
-
-        const isMatch = await bcrypt.compare(password, user.password);
-
-        if(!isMatch){
-
-            return res.status(400).json({message: 'invalid credential'});
-
-        }
-
-
-
-        delete user._doc.password;
-        console.log(user._doc);
-        console.log('i m taj');
-
-     
-        const token = jwt.sign(user._doc, 'tajul', {expiresIn: '50s'});
-        console.log(token);   
-
-        return res.status(200).json({message: 'login successful', token});
-
-    } catch(e){
-
-    }
-
-
-});
 
 
 app.get('/private', authenticate, async (req, res) => {
@@ -199,9 +111,15 @@ app.post('/books', (req, res) => {
 
 
 app.use((err, req, res, next) => {
+    console.log('global error 1', err.status);
 
-    console.log(err);
-    res.status(500).json({message: 'Server Error Occurred'});
+    const status = err.status ? err.status : 500;
+    const message = err.message ? err.message : 'server error occurd';
+
+    res.status(status).json({message,
+    });
+
+    console.log('global error 2', err.message);
 
 });
 
