@@ -4,7 +4,7 @@ const error = require('../utils/error');
 const {findUserByProperty, createNewUser} = require('./user');
 
 
-const registerService = async ({name, email, password}) => {
+const registerService = async ({name, email, password, roles, accountStatus}) => {
 
     let user = await findUserByProperty('email', email);
   
@@ -18,7 +18,7 @@ const registerService = async ({name, email, password}) => {
       console.log(hash);
       console.log('this is bcryptjs');
 
-      return createNewUser({ name, email, password: hash });
+      return createNewUser({ name, email, password: hash, roles, accountStatus });
 
     
       
@@ -49,7 +49,7 @@ const loginService = async ({email, password}) => {
 
         };
 
-        return jwt.sign(payload, 'tajul', {expiresIn: '50s'});
+        return jwt.sign(payload, 'tajul', {expiresIn: '2h'});
 
     
 
